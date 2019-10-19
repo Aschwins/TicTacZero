@@ -66,7 +66,6 @@ class Board:
             return self.state, CROSS_WIN if side == CROSS else CIRCLE_WIN, True
         
         if self.n_empty_squares() == 0:
-            print("Draw")
             return self.state, DRAW, True
         
         return self.state, NOT_FINISHED, False
@@ -78,7 +77,6 @@ class Board:
         for mask in WIN_MASKS:
             if (np.array_equal(self.state[mask], [CROSS, CROSS, CROSS]) | 
                 np.array_equal(self.state[mask], [CIRCLE, CIRCLE, CIRCLE])):
-                print("Game ended, someone won.")
                 return True
             
         return False
@@ -92,8 +90,11 @@ class Board:
                 return CROSS
             elif (np.array_equal(self.state[mask], [CIRCLE, CIRCLE, CIRCLE])):
                 return CIRCLE
-                
-        return EMPTY
+
+        if self.n_empty_squares == 0:
+            return DRAW
+        else:
+            return EMPTY
     
     def print_board(self):
         """

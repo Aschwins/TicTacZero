@@ -3,15 +3,15 @@ import numpy as np
 # Squarestates
 EMPTY = 0
 CROSS = 1
-CIRCLE = 2
+CIRCLE = -1
 
 BOARD_SIZE = 3
 
 # Gamestates
-NOT_FINISHED = 0
+NOT_FINISHED = 9
 CROSS_WIN = 1
 CIRCLE_WIN = 2
-DRAW = 3
+DRAW = 0
 
 WIN_MASKS = [[True, True, True, False, False, False, False, False, False],
              [False, False, False, True, True, True, False, False, False],
@@ -48,6 +48,13 @@ class Board:
         Returns a random empty square.
         """
         return np.random.choice(np.where(self.state == EMPTY)[0])
+
+    def all_empty_squares(self) -> list:
+        """
+        Return a list of the indices of all the empty squares.
+        """
+        indices = [i for i, x in enumerate(self.state) if x == 0]
+        return indices
 
         
     def move(self, position: int, side: int):
@@ -95,6 +102,21 @@ class Board:
             return DRAW
         else:
             return EMPTY
+
+    def next_board_states(self, side):
+        """
+        Returns all possible next board states for a given side.
+        """
+        empty_squares = self.all_empty_squares()
+        next_board_states = np.zeros(shape=(len(empty_squares), 9))
+
+        for i, e in enumerate(empty_squares):
+            next_board_state = self.state.copy()
+            next_board_state[e] = side
+            next_board_states[i] = next_board_state
+
+        return empty_squares, next_board_states
+
     
     def print_board(self):
         """

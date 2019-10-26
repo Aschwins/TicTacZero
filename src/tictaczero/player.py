@@ -1,5 +1,7 @@
 from tictaczero.board import Board
-from tictaczero.board import WIN_MASKS
+from tictaczero.board import WIN_MASKS, CROSS, CIRCLE
+from tensorflow import keras
+import tensorflow as tf
 import numpy as np
 
 class BasePlayer:
@@ -115,12 +117,12 @@ class BrainPlayer(BasePlayer):
             self.train_the_brain()
             
     def train_the_brain(self):
-        X = self.memory[-self.new_games_seen:,:-1]
-        y = self.memory[-self.new_games_seen:, -1]
+        X = self.memory[-self.new_states_seen:,:-1]
+        y = self.memory[-self.new_states_seen:, -1]
         
         tensor_X = tf.convert_to_tensor(X, np.float32)
         tensor_y = tf.convert_to_tensor(y, np.int32)
-        self.brain.fit(xtrain_tf, ytrain_tf, batch_size=1000, epochs=20, verbose=1)
+        self.brain.fit(tensor_X, tensor_y, batch_size=1000, epochs=20, verbose=1)
         
         self.new_states_seen = 0
         

@@ -7,8 +7,8 @@ def play_a_game(Player1, Player2, print_result = False):
     Returns: board_history
     """
     board = Board(3)
-    p1 = Player1(side=CROSS)
-    p2 = Player2(side=CIRCLE)
+    p1 = Player1
+    p2 = Player2
     
     board_history = np.zeros(shape=(1,9), dtype=np.int32)
     ongoing = True

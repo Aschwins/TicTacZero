@@ -80,9 +80,11 @@ class BrainPlayer(BasePlayer):
         super().__init__(*args, **kwargs)
         self.max_memory = max_memory
         self.N = update_after_n_states
-        self.new_states_seen = 0
+        self.boardstates_seen = 0
+        self.new_boardstates_seen = 0
+        self.memory = np.empty(shape=(max_memory, 10), dtype=np.int32)
+        self.memory_left = max_memory
         self.exp_rate = exp_rate
-        self.memory = np.zeros(shape=(1, 10), dtype=np.int32)
         self.brain = self.initialize_neural_net()
         
         
@@ -106,25 +108,34 @@ class BrainPlayer(BasePlayer):
         boardstates: Must be a np.array of size (n, 10) where n is the number of games. And
         the last column contains the end result of said game.
         """
-        self.memory = np.concatenate((self.memory, boardstates), axis = 0)
-        self.new_states_seen += len(boardstates)
-        
-        if len(self.memory) > self.max_memory:
-            delta = len(self.memory) - self.max_memory
-            self.memory = self.memory[delta:, :] # deletes all first delta rows
+        n_boardstates = len(boardstates)
+
+        if (n_boardstates > self.memory_left):
+            memory_shortage = n_boardstates - self.memory_left
+            self.memory[0:-n_boardstates, :] = self.memory[memory_shortage:self.boardstates_seen, :]
+            self.memory[-n_boardstates, :] = boardstates
+            self.memory_left = 0
+            self.boardstates_seen = self.max_memory
+
+        else:
+            self.memory[self.boardstates_seen:self.boardstates_seen + n_boardstates, :] = boardstates
+            self.boardstates_seen += n_boardstates
+            self.memory_left -= n_boardstates
+
+        self.new_boardstates_seen += n_boardstates
             
-        if self.new_states_seen > self.N:
-            self.train_the_brain()
+        if self.new_boardstates_seen > self.N:
+            self.train_the_brain() # Train on last new_seen boardstates
             
     def train_the_brain(self):
-        X = self.memory[-self.new_states_seen:,:-1]
-        y = self.memory[-self.new_states_seen:, -1]
+        X = self.memory[-self.new_boardstates_seen:,:-1]
+        y = self.memory[-self.new_boardstates_seen:, -1]
         
         tensor_X = tf.convert_to_tensor(X, np.float32)
         tensor_y = tf.convert_to_tensor(y, np.int32)
         self.brain.fit(tensor_X, tensor_y, batch_size=1000, epochs=20, verbose=1)
         
-        self.new_states_seen = 0
+        self.new_boardstates_seen = 0
         
     def move(self, board):
         """

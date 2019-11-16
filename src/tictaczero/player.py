@@ -4,6 +4,8 @@ from tensorflow import keras
 import tensorflow as tf
 import numpy as np
 
+side_map = {CROSS: 1, CIRCLE: 2}
+
 class BasePlayer:
     """
     A Base tic-tac-toe player.
@@ -149,8 +151,6 @@ class BrainPlayer(BasePlayer):
             _, res, finished = board.move(board.random_empty_square(), self.side)
         # exploitation
         else:
-            side_map = {CROSS: 1, CIRCLE: 2}
-            
             empty_squares, next_board_states = board.next_board_states(self.side)
             scores = self.brain.predict(next_board_states)[:, side_map[self.side]]
             highest_score_idx = np.argmax(scores)
